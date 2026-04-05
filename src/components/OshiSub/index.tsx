@@ -111,7 +111,7 @@ export function OshiSub() {
     keyterms: '',
     chunks: [],
     translatedChunks: [],
-    translateMode: 'webgpu',
+    translateMode: 'groq',
     targetLanguage: 'English',
     targetLanguages: [{ lang: 'English', instructions: '' }],
     groqTranslateKey: '',

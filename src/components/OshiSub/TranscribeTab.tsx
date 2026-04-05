@@ -362,6 +362,34 @@ export function TranscribeTab({
     patch({ chunks: updated });
   };
 
+  // Split a chunk at the cursor position (Shift+Enter)
+  const splitChunkAtCursor = (chunkId: string, cursorPos: number) => {
+    const idx = state.chunks.findIndex(c => c.id === chunkId);
+    if (idx < 0) return;
+    const chunk = state.chunks[idx];
+    const text = chunk.text;
+    if (cursorPos <= 0 || cursorPos >= text.length) return;
+
+    const beforeText = text.slice(0, cursorPos).trim();
+    const afterText = text.slice(cursorPos).trim();
+    if (!beforeText && !afterText) return;
+
+    // Proportional split based on character position
+    const ratio = cursorPos / text.length;
+    const duration = chunk.end - chunk.start;
+    const splitTime = chunk.start + duration * ratio;
+
+    const updatedChunks = [...state.chunks];
+    updatedChunks[idx] = { ...chunk, text: beforeText, end: splitTime };
+    updatedChunks.splice(idx + 1, 0, {
+      id: generateId(),
+      start: splitTime,
+      end: chunk.end,
+      text: afterText,
+    });
+    patch({ chunks: updatedChunks });
+  };
+
   // Click on caption timeline → seek
   const handleTimelineClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!timelineRef.current || virtualDuration === 0) return;
@@ -880,6 +908,13 @@ export function TranscribeTab({
                       className="inline-edit"
                       value={chunk.text}
                       onChange={(e) => updateChunk(chunk.id, { text: e.target.value })}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && e.shiftKey) {
+                          e.preventDefault();
+                          const target = e.target as HTMLTextAreaElement;
+                          splitChunkAtCursor(chunk.id, target.selectionStart);
+                        }
+                      }}
                       style={{ resize: 'none', height: 44, fontSize: 12, lineHeight: 1.5 }}
                       onClick={(e) => e.stopPropagation()}
                     />

@@ -24,12 +24,20 @@ export function ExportTab({ state, patch, ffmpegRef, webcodesWorkerRef }: Export
   const hasVideo = !!state.videoFile;
   const hasCut = state.cutSegments.length > 0;
   const hasChunks = state.chunks.length > 0;
+  const [exportLang, setExportLang] = useState<string>('original');
 
-  const activeChunks = state.translatedChunks.length > 0
-    ? state.chunks.map((c) => ({ ...c, text: state.translatedChunks.find((t) => t.id === c.id)?.translatedText ?? c.text }))
-    : state.chunks;
+  // Available languages that have translations
+  const translatedLangs = [...new Set(state.translatedChunks.map(t => t.language))];
+
+  const activeChunks = exportLang === 'original'
+    ? state.chunks
+    : state.chunks.map((c) => ({
+        ...c,
+        text: state.translatedChunks.find((t) => t.id === c.id && t.language === exportLang)?.translatedText ?? c.text,
+      }));
 
   const baseName = state.videoFile?.name.replace(/\.[^.]+$/, '') ?? 'oshisub';
+  const langSuffix = exportLang === 'original' ? '' : `_${exportLang.toLowerCase().replace(/[^a-z]/g, '')}`;
 
   const entries: SubtitleEntry[] = activeChunks.map((c, i) => ({
     index: i + 1, start: c.start, end: c.end, text: c.text,
@@ -50,11 +58,11 @@ export function ExportTab({ state, patch, ffmpegRef, webcodesWorkerRef }: Export
   };
 
   const exportSRT = () => {
-    downloadBlob(new Blob([generateSRT(entries)], { type: 'text/srt;charset=utf-8' }), `${baseName}.srt`);
+    downloadBlob(new Blob([generateSRT(entries)], { type: 'text/srt;charset=utf-8' }), `${baseName}${langSuffix}.srt`);
   };
 
   const exportASS = () => {
-    downloadBlob(new Blob([generateASS(entries, baseName, state.subtitleStyle)], { type: 'text/ass;charset=utf-8' }), `${baseName}.ass`);
+    downloadBlob(new Blob([generateASS(entries, baseName, state.subtitleStyle)], { type: 'text/ass;charset=utf-8' }), `${baseName}${langSuffix}.ass`);
   };
 
   // ── Burn-in: WebCodecs primary, Canvas+MediaRecorder fallback ────────────
@@ -100,7 +108,6 @@ export function ExportTab({ state, patch, ffmpegRef, webcodesWorkerRef }: Export
             }
           };
           worker.addEventListener('message', handler);
-          // Send a COPY of videoData (via transfer) so we can still use it for fallback
           const copy = videoData.slice(0);
           worker.postMessage(
             { type: 'burn', payload: { videoData: copy, subtitles: subtitleLines, style: state.subtitleStyle } },
@@ -109,16 +116,15 @@ export function ExportTab({ state, patch, ffmpegRef, webcodesWorkerRef }: Export
         });
 
         if (result !== 'unsupported') {
-          downloadBlob(new Blob([result], { type: 'video/mp4' }), `${baseName}_subtitled.mp4`);
+          downloadBlob(new Blob([result], { type: 'video/mp4' }), `${baseName}${langSuffix}_subtitled.mp4`);
           patch({ status: 'done', statusMsg: 'Burned-in video exported (WebCodecs GPU)!' });
           setExporting(null);
           return;
         }
-        // Fall through to Canvas
         patch({ statusMsg: 'WebCodecs not supported, falling back to Canvas…' });
       }
 
-      // Step 3: Canvas + VideoEncoder fallback (still MP4 output)
+      // Step 3: Canvas + VideoEncoder fallback
       setBurnEngine('canvas');
       patch({ statusMsg: 'Step 2: Burning subtitles (Canvas encoder)…' });
 
@@ -131,7 +137,7 @@ export function ExportTab({ state, patch, ffmpegRef, webcodesWorkerRef }: Export
         }, cancelRef);
 
         if (!cancelRef.current) {
-          downloadBlob(new Blob([resultBuf], { type: 'video/mp4' }), `${baseName}_subtitled.mp4`);
+          downloadBlob(new Blob([resultBuf], { type: 'video/mp4' }), `${baseName}${langSuffix}_subtitled.mp4`);
           patch({ status: 'done', statusMsg: 'Burned-in video exported (Canvas → MP4)!' });
         }
       } finally {
@@ -144,11 +150,29 @@ export function ExportTab({ state, patch, ffmpegRef, webcodesWorkerRef }: Export
     } finally {
       setExporting(null);
     }
-  }, [state.videoFile, hasChunks, hasCut, entries, state.subtitleStyle, baseName, ffmpegRef, webcodesWorkerRef, patch]);
+  }, [state.videoFile, hasChunks, hasCut, entries, state.subtitleStyle, baseName, langSuffix, ffmpegRef, webcodesWorkerRef, patch]);
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <div style={{ flex: 1, overflowY: 'auto', padding: 24, display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 640 }}>
+
+        {/* Language selector */}
+        {hasChunks && (
+          <div className="panel">
+            <div className="panel-label">Export Language</div>
+            <select value={exportLang} onChange={(e) => setExportLang(e.target.value)}>
+              <option value="original">Original (transcribed)</option>
+              {translatedLangs.map(l => (
+                <option key={l} value={l}>{l}</option>
+              ))}
+            </select>
+            {exportLang !== 'original' && (
+              <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 4 }}>
+                Exports will use {exportLang} translations.
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Cut Video */}
         <div className="panel">
@@ -172,7 +196,7 @@ export function ExportTab({ state, patch, ffmpegRef, webcodesWorkerRef }: Export
             <button className="btn btn-primary" onClick={exportSRT} disabled={!hasChunks}>↓ Export .srt</button>
             <button className="btn btn-ghost" onClick={exportASS} disabled={!hasChunks}>↓ Export .ass</button>
           </div>
-          {hasChunks && <div style={{ marginTop: 8, fontSize: 11, color: 'var(--text-dim)' }}>{entries.length} line{entries.length !== 1 ? 's' : ''}</div>}
+          {hasChunks && <div style={{ marginTop: 8, fontSize: 11, color: 'var(--text-dim)' }}>{entries.length} line{entries.length !== 1 ? 's' : ''}{exportLang !== 'original' ? ` · ${exportLang}` : ''}</div>}
         </div>
 
         {/* Burn-in */}
