@@ -1,7 +1,9 @@
 /*
-  Cloudflare Pages _headers file
-  Sets Cross-Origin headers required for SharedArrayBuffer (WebGPU/ONNX Runtime)
-*/
-/*
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Embedder-Policy: credentialless
+
+/assets/*.js
+  Content-Type: application/javascript
+
+/assets/*.css
+  Content-Type: text/css
