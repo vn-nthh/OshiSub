@@ -722,7 +722,7 @@ export function TranscribeTab({
                     className="btn btn-primary"
                     style={{ flex: 1 }}
                     onClick={runTranscription}
-                    disabled={isRunning || !hasCut}
+                    disabled={isRunning}
                   >
                     {isRunning ? '⏳ Working…' : hasChunks ? '↺ Re-transcribe' : '▶ Transcribe'}
                   </button>
@@ -833,7 +833,7 @@ export function TranscribeTab({
               <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }}>
                 {hasCut
                   ? 'Run transcription to generate captions.'
-                  : 'Set cut points in the Cut tab first.'}
+                  : 'Run transcription to generate captions from full video.'}
               </div>
             )}
             {state.chunks.map((chunk, i) => {

@@ -113,6 +113,7 @@ export function OshiSub() {
     translatedChunks: [],
     translateMode: 'webgpu',
     targetLanguage: 'English',
+    targetLanguages: [{ lang: 'English', instructions: '' }],
     groqTranslateKey: '',
     subtitleStyle: DEFAULT_SUBTITLE_STYLE,
     status: 'idle',

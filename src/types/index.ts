@@ -40,8 +40,14 @@ export type TranscriptionMode = 'webgpu' | 'groq';
 // ─── Translation ──────────────────────────────────────────────────────────────
 export type TranslationMode = 'webgpu' | 'groq';
 
+export interface TargetLanguageConfig {
+  lang: string;
+  instructions: string;  // optional custom instructions for this language
+}
+
 export interface TranslatedChunk {
   id: string;          // matches TranscriptChunk.id
+  language: string;    // which language this translation is for
   originalText: string;
   translatedText: string;
 }
@@ -116,7 +122,8 @@ export interface AppState {
   chunks: TranscriptChunk[];
   translatedChunks: TranslatedChunk[];
   translateMode: TranslationMode;
-  targetLanguage: string;
+  targetLanguage: string;      // currently selected language for translation
+  targetLanguages: TargetLanguageConfig[];   // all languages the user has added
   groqTranslateKey: string;
   subtitleStyle: SubtitleStyle;
   status: AppStatus;

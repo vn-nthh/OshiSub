@@ -82,15 +82,17 @@ const GROQ_TRANSLATE_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
 export async function translateWithGroq(
   texts: string[],
   targetLanguage: string,
-  apiKey: string
+  apiKey: string,
+  instructions?: string
 ): Promise<string[]> {
   if (texts.length === 0) return [];
 
   const numbered = texts.map((t, i) => `${i + 1}. ${t}`).join('\n');
+  const customInstructions = instructions ? `\nAdditional instructions: ${instructions}\n` : '';
   const prompt = `Translate the following numbered subtitle lines to ${targetLanguage}. 
 Return ONLY the translated lines in the same numbered format (1. translation, 2. translation, etc.).
 Do not add explanations or change the numbering.
-
+${customInstructions}
 ${numbered}`;
 
   const response = await fetch(GROQ_CHAT_URL, {

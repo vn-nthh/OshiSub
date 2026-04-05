@@ -413,7 +413,7 @@ export function CutTab({ videoFile, videoObjectUrl, videoDuration, cutSegments, 
       {/* Help popover (anchored to top-left of body) */}
       {showHelp && (
         <div style={{
-          position: 'absolute', top: 4, left: 12, zIndex: 50,
+          position: 'absolute', top: 4, right: 12, zIndex: 50,
           background: 'var(--bg-elevated)', border: '1px solid var(--border)',
           borderRadius: 6, padding: '14px 16px', width: 260,
           boxShadow: '0 8px 24px rgba(0,0,0,0.4)',

@@ -703,3 +703,67 @@ select {
   min-width: 0;
   overflow-y: auto;
 }
+
+/* ─── Responsive ──────────────────────────────────────────────────────────── */
+
+/* Medium screens — compact tabs */
+@media (max-width: 900px) {
+  :root {
+    --tabbar-h: 38px;
+  }
+
+  .tab-item {
+    padding: 0 10px;
+    font-size: 10px;
+    gap: 4px;
+  }
+
+  .tab-item span {
+    display: none;
+  }
+
+  .tab-item svg {
+    width: 16px;
+    height: 16px;
+    opacity: 1;
+  }
+
+  .btn {
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+
+  .form-label {
+    font-size: 10px;
+  }
+
+  .form-hint {
+    font-size: 9px;
+  }
+}
+
+/* Small screens — minimal chrome */
+@media (max-width: 650px) {
+  :root {
+    --tabbar-h: 34px;
+  }
+
+  .tab-sidebar {
+    padding: 0 6px;
+    gap: 0;
+  }
+
+  .tab-item {
+    padding: 0 8px;
+  }
+
+  .btn {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  select, input, textarea {
+    font-size: 11px !important;
+  }
+}
