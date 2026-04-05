@@ -1,0 +1,589 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap');
+
+/* ============================================================
+   WIN98 DESIGN SYSTEM — CSS Variables + shadcn overrides
+   ============================================================ */
+
+:root {
+  /* Desktop */
+  --desktop-bg: #008080;
+
+  /* Win98 window chrome */
+  --win-surface:          #c0c0c0;
+  --win-title-active:     #000080;
+  --win-title-inactive:   #7b8895;
+  --win-title-text:       #ffffff;
+  --win-border-outer-lt:  #ffffff;
+  --win-border-inner-lt:  #dfdfdf;
+  --win-border-inner-dk:  #808080;
+  --win-border-outer-dk:  #404040;
+
+  /* shadcn variable overrides */
+  --background:           #c0c0c0;
+  --foreground:           #000000;
+  --card:                 #c0c0c0;
+  --card-foreground:      #000000;
+  --popover:              #c0c0c0;
+  --popover-foreground:   #000000;
+  --primary:              #000080;
+  --primary-foreground:   #ffffff;
+  --secondary:            #c0c0c0;
+  --secondary-foreground: #000000;
+  --muted:                #808080;
+  --muted-foreground:     #404040;
+  --accent:               #000080;
+  --accent-foreground:    #ffffff;
+  --destructive:          #800000;
+  --destructive-foreground: #ffffff;
+  --border:               #808080;
+  --input:                #ffffff;
+  --ring:                 #000080;
+  --radius:               0px;
+
+  /* Typography */
+  --font-sans:  "MS Sans Serif", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --font-mono:  "Fixedsys", "Lucida Console", "Courier New", monospace;
+}
+
+/* ============================================================
+   GLOBAL RESET
+   ============================================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  background: var(--desktop-bg);
+  color: var(--foreground);
+  -webkit-font-smoothing: none;
+  font-smooth: never;
+  image-rendering: pixelated;
+}
+
+/* ============================================================
+   WIN98 BORDER UTILITIES
+   ============================================================ */
+
+.border-raised {
+  border: 2px solid;
+  border-color: var(--win-border-outer-lt) var(--win-border-outer-dk)
+                var(--win-border-outer-dk) var(--win-border-outer-lt);
+  box-shadow:
+    inset 1px 1px 0 var(--win-border-inner-lt),
+    inset -1px -1px 0 var(--win-border-inner-dk);
+}
+
+.border-sunken {
+  border: 2px solid;
+  border-color: var(--win-border-outer-dk) var(--win-border-outer-lt)
+                var(--win-border-outer-lt) var(--win-border-outer-dk);
+  box-shadow:
+    inset 1px 1px 0 var(--win-border-inner-dk),
+    inset -1px -1px 0 var(--win-border-inner-lt);
+}
+
+.border-field {
+  border: 2px solid;
+  border-color: var(--win-border-inner-dk) var(--win-border-inner-lt)
+                var(--win-border-inner-lt) var(--win-border-inner-dk);
+  box-shadow:
+    inset 1px 1px 0 var(--win-border-outer-dk),
+    inset -1px -1px 0 var(--win-border-outer-lt);
+}
+
+/* ============================================================
+   WIN98 BUTTON
+   ============================================================ */
+
+.win98-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 3px 10px;
+  min-width: 75px;
+  height: 23px;
+  background: var(--win-surface);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: #000;
+  cursor: pointer;
+  user-select: none;
+  border: 2px solid;
+  border-color: var(--win-border-outer-lt) var(--win-border-outer-dk)
+                var(--win-border-outer-dk) var(--win-border-outer-lt);
+  box-shadow:
+    inset 1px 1px 0 var(--win-border-inner-lt),
+    inset -1px -1px 0 var(--win-border-inner-dk);
+}
+
+.win98-btn:hover {
+  background: #d4d0c8;
+}
+
+.win98-btn:active {
+  border-color: var(--win-border-outer-dk) var(--win-border-outer-lt)
+                var(--win-border-outer-lt) var(--win-border-outer-dk);
+  box-shadow:
+    inset 1px 1px 0 var(--win-border-inner-dk),
+    inset -1px -1px 0 var(--win-border-inner-lt);
+  padding-top: 4px;
+  padding-left: 11px;
+}
+
+.win98-btn:disabled {
+  color: var(--win-border-inner-dk);
+  cursor: default;
+}
+
+.win98-btn.primary {
+  outline: 1px solid #000;
+  outline-offset: -4px;
+}
+
+/* ============================================================
+   WIN98 TITLE BAR
+   ============================================================ */
+
+.win98-title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 2px 2px 4px;
+  background: linear-gradient(to right, #000080, #1084d0);
+  color: #fff;
+  font-weight: bold;
+  font-size: 11px;
+  cursor: move;
+  user-select: none;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.win98-title-bar.inactive {
+  background: linear-gradient(to right, var(--win-title-inactive), #9ba7b4);
+}
+
+.win98-title-bar-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.win98-title-bar-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.win98-title-btn {
+  width: 16px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--win-surface);
+  font-size: 9px;
+  font-weight: bold;
+  cursor: pointer;
+  border: 2px solid;
+  border-color: var(--win-border-outer-lt) var(--win-border-outer-dk)
+                var(--win-border-outer-dk) var(--win-border-outer-lt);
+  box-shadow:
+    inset 1px 1px 0 var(--win-border-inner-lt),
+    inset -1px -1px 0 var(--win-border-inner-dk);
+  line-height: 1;
+  color: #000;
+  flex-shrink: 0;
+}
+
+.win98-title-btn:active {
+  border-color: var(--win-border-outer-dk) var(--win-border-outer-lt)
+                var(--win-border-outer-lt) var(--win-border-outer-dk);
+}
+
+/* ============================================================
+   WIN98 MENU BAR / TAB STRIP
+   ============================================================ */
+
+.win98-menubar {
+  display: flex;
+  align-items: center;
+  padding: 1px 2px;
+  background: var(--win-surface);
+  border-bottom: 1px solid var(--win-border-inner-dk);
+  font-size: 11px;
+  gap: 0;
+}
+
+.win98-menu-item {
+  padding: 2px 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.win98-menu-item:hover,
+.win98-menu-item.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* Tab strip */
+.win98-tabs {
+  display: flex;
+  align-items: flex-end;
+  padding: 0 4px;
+  background: var(--win-surface);
+  border-bottom: 2px solid var(--win-border-inner-dk);
+}
+
+.win98-tab {
+  padding: 3px 10px 2px;
+  font-size: 11px;
+  cursor: pointer;
+  border: 2px solid;
+  border-bottom: none;
+  border-color: var(--win-border-outer-lt) var(--win-border-inner-dk)
+                transparent var(--win-border-inner-lt);
+  background: #b0b0b0;
+  margin-right: 2px;
+  position: relative;
+  top: 2px;
+}
+
+.win98-tab.active {
+  background: var(--win-surface);
+  border-color: var(--win-border-outer-lt) var(--win-border-inner-dk)
+                var(--win-surface) var(--win-border-inner-lt);
+  font-weight: bold;
+  z-index: 1;
+  top: 0;
+  padding-bottom: 4px;
+}
+
+/* ============================================================
+   WIN98 INPUT FIELDS
+   ============================================================ */
+
+.win98-input {
+  background: #fff;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: #000;
+  padding: 2px 4px;
+  outline: none;
+  width: 100%;
+  border: 2px solid;
+  border-color: var(--win-border-inner-dk) var(--win-border-inner-lt)
+                var(--win-border-inner-lt) var(--win-border-inner-dk);
+  box-shadow:
+    inset 1px 1px 0 var(--win-border-outer-dk),
+    inset -1px -1px 0 var(--win-border-outer-lt);
+}
+
+.win98-input:focus {
+  outline: none;
+}
+
+.win98-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M4 6l4 4 4-4z' fill='%23000'/%3E%3C/svg%3E") no-repeat right 2px center;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  padding: 2px 20px 2px 4px;
+  cursor: pointer;
+  border: 2px solid;
+  border-color: var(--win-border-inner-dk) var(--win-border-inner-lt)
+                var(--win-border-inner-lt) var(--win-border-inner-dk);
+  box-shadow:
+    inset 1px 1px 0 var(--win-border-outer-dk),
+    inset -1px -1px 0 var(--win-border-outer-lt);
+}
+
+/* ============================================================
+   WIN98 PROGRESS BAR
+   ============================================================ */
+
+.win98-progress {
+  width: 100%;
+  height: 16px;
+  background: #fff;
+  border: 2px solid;
+  border-color: var(--win-border-inner-dk) var(--win-border-inner-lt)
+                var(--win-border-inner-lt) var(--win-border-inner-dk);
+  box-shadow:
+    inset 1px 1px 0 var(--win-border-outer-dk),
+    inset -1px -1px 0 var(--win-border-outer-lt);
+  overflow: hidden;
+}
+
+.win98-progress-bar {
+  height: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    #000080 0px,
+    #000080 8px,
+    transparent 8px,
+    transparent 10px
+  );
+  transition: width 0.2s linear;
+  min-width: 0;
+}
+
+/* ============================================================
+   WIN98 GROUPBOX
+   ============================================================ */
+
+.win98-groupbox {
+  border: 1px solid var(--win-border-inner-dk);
+  box-shadow: 1px 1px 0 var(--win-border-outer-lt);
+  padding: 8px 8px 8px 8px;
+  position: relative;
+  margin-top: 8px;
+}
+
+.win98-groupbox-label {
+  position: absolute;
+  top: -8px;
+  left: 8px;
+  background: var(--win-surface);
+  padding: 0 3px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* ============================================================
+   WIN98 SCROLLBAR (webkit only)
+   ============================================================ */
+
+::-webkit-scrollbar { width: 16px; height: 16px; }
+::-webkit-scrollbar-track { background: var(--win-surface); }
+::-webkit-scrollbar-thumb {
+  background: var(--win-surface);
+  border: 2px solid;
+  border-color: var(--win-border-outer-lt) var(--win-border-outer-dk)
+                var(--win-border-outer-dk) var(--win-border-outer-lt);
+  box-shadow:
+    inset 1px 1px 0 var(--win-border-inner-lt),
+    inset -1px -1px 0 var(--win-border-inner-dk);
+}
+::-webkit-scrollbar-button {
+  background: var(--win-surface);
+  border: 2px solid;
+  border-color: var(--win-border-outer-lt) var(--win-border-outer-dk)
+                var(--win-border-outer-dk) var(--win-border-outer-lt);
+  box-shadow:
+    inset 1px 1px 0 var(--win-border-inner-lt),
+    inset -1px -1px 0 var(--win-border-inner-dk);
+  display: block;
+  height: 16px;
+  width: 16px;
+}
+
+/* ============================================================
+   STATUS BAR
+   ============================================================ */
+
+.win98-statusbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 2px;
+  border-top: 1px solid var(--win-border-inner-dk);
+  font-size: 11px;
+  background: var(--win-surface);
+  flex-shrink: 0;
+  height: 20px;
+}
+
+.win98-statusbar-panel {
+  padding: 1px 4px;
+  flex: 1;
+  border: 1px solid;
+  border-color: var(--win-border-inner-dk) var(--win-border-inner-lt)
+                var(--win-border-inner-lt) var(--win-border-inner-dk);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ============================================================
+   DESKTOP ICON
+   ============================================================ */
+
+.desktop-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 72px;
+  padding: 4px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  user-select: none;
+}
+
+.desktop-icon:hover .desktop-icon-label {
+  background: var(--primary);
+  color: #fff;
+  outline: 1px dotted #fff;
+}
+
+.desktop-icon.selected .desktop-icon-label {
+  background: var(--primary);
+  color: #fff;
+}
+
+.desktop-icon-img {
+  width: 32px;
+  height: 32px;
+  image-rendering: pixelated;
+}
+
+.desktop-icon-label {
+  font-size: 11px;
+  color: #fff;
+  text-align: center;
+  padding: 1px 2px;
+  line-height: 1.3;
+  word-wrap: break-word;
+  max-width: 72px;
+  text-shadow: 1px 1px 1px #000;
+}
+
+/* ============================================================
+   TASKBAR
+   ============================================================ */
+
+.win98-taskbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 28px;
+  background: var(--win-surface);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  gap: 4px;
+  border-top: 2px solid;
+  border-color: var(--win-border-outer-lt) transparent transparent var(--win-border-outer-lt);
+  box-shadow: inset 1px 1px 0 var(--win-border-inner-lt);
+}
+
+.win98-start-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  font-weight: bold;
+  font-size: 11px;
+  cursor: pointer;
+  height: 22px;
+  white-space: nowrap;
+  border: 2px solid;
+  border-color: var(--win-border-outer-lt) var(--win-border-outer-dk)
+                var(--win-border-outer-dk) var(--win-border-outer-lt);
+  box-shadow:
+    inset 1px 1px 0 var(--win-border-inner-lt),
+    inset -1px -1px 0 var(--win-border-inner-dk);
+  background: var(--win-surface);
+}
+
+.win98-start-btn:active {
+  border-color: var(--win-border-outer-dk) var(--win-border-outer-lt)
+                var(--win-border-outer-lt) var(--win-border-outer-dk);
+}
+
+.taskbar-divider {
+  width: 2px;
+  height: 22px;
+  border-left: 1px solid var(--win-border-inner-dk);
+  border-right: 1px solid var(--win-border-inner-lt);
+  flex-shrink: 0;
+}
+
+.taskbar-window-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  font-size: 11px;
+  cursor: pointer;
+  height: 22px;
+  max-width: 160px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  border: 2px solid;
+  border-color: var(--win-border-outer-lt) var(--win-border-outer-dk)
+                var(--win-border-outer-dk) var(--win-border-outer-lt);
+  box-shadow:
+    inset 1px 1px 0 var(--win-border-inner-lt),
+    inset -1px -1px 0 var(--win-border-inner-dk);
+  background: var(--win-surface);
+  flex-shrink: 0;
+}
+
+.taskbar-window-btn.active {
+  border-color: var(--win-border-outer-dk) var(--win-border-outer-lt)
+                var(--win-border-outer-lt) var(--win-border-outer-dk);
+  box-shadow:
+    inset 1px 1px 0 var(--win-border-inner-dk),
+    inset -1px -1px 0 var(--win-border-inner-lt);
+}
+
+.taskbar-clock {
+  margin-left: auto;
+  padding: 2px 6px;
+  font-size: 11px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  border: 1px solid;
+  border-color: var(--win-border-inner-dk) var(--win-border-inner-lt)
+                var(--win-border-inner-lt) var(--win-border-inner-dk);
+}
+
+/* ============================================================
+   DRAG OVERLAY
+   ============================================================ */
+
+.drag-ghost {
+  pointer-events: none;
+  outline: 1px dotted #000;
+}
+
+/* ============================================================
+   UTILITY
+   ============================================================ */
+
+.text-disabled { color: var(--win-border-inner-dk); }
+.bg-win { background: var(--win-surface); }
+.bg-white { background: #fff; }
+.text-mono { font-family: var(--font-mono); }
+
+/* Info bar (Firefox compat notice) */
+.win98-infobar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  background: #ffff80;
+  border-bottom: 1px solid #c0c000;
+  font-size: 11px;
+  color: #000;
+  flex-shrink: 0;
+}

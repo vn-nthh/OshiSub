@@ -1,0 +1,73 @@
+diff --git a/node_modules/@huggingface/transformers/src/models/whisper/modeling_whisper.js b/node_modules/@huggingface/transformers/src/models/whisper/modeling_whisper.js
+index df4229f..b5e90b4 100644
+--- a/node_modules/@huggingface/transformers/src/models/whisper/modeling_whisper.js
++++ b/node_modules/@huggingface/transformers/src/models/whisper/modeling_whisper.js
+@@ -118,15 +118,31 @@ export class WhisperForConditionalGeneration extends WhisperPreTrainedModel {
+ 
+         const init_tokens = kwargs.decoder_input_ids ?? this._retrieve_init_tokens(generation_config);
+ 
++        // ── prompt_ids support ──────────────────────────────────────────────
++        // If prompt_ids is provided, prepend [<|startofprev|>, ...prompt_ids]
++        // to the decoder prefix. Logits processors use clean init_tokens only.
++        const prompt_ids = generation_config.prompt_ids;
++        let prompt_prefix = [];
++        if (prompt_ids && prompt_ids.length > 0) {
++            const START_OF_PREV = 50361; // <|startofprev|>
++            prompt_prefix = [START_OF_PREV, ...prompt_ids];
++            // Clear so it doesn't propagate further
++            generation_config.prompt_ids = null;
++        }
++        const decoder_input_ids = prompt_prefix.length > 0
++            ? [...prompt_prefix, ...init_tokens]
++            : init_tokens;
++        // ────────────────────────────────────────────────────────────────────
++
+         if (generation_config.return_timestamps) {
+             logits_processor ??= new LogitsProcessorList();
+-            logits_processor.push(new WhisperTimeStampLogitsProcessor(generation_config, init_tokens));
++            logits_processor.push(new WhisperTimeStampLogitsProcessor(generation_config, decoder_input_ids));
+         }
+ 
+         if (generation_config.begin_suppress_tokens) {
+             logits_processor ??= new LogitsProcessorList();
+             logits_processor.push(
+-                new SuppressTokensAtBeginLogitsProcessor(generation_config.begin_suppress_tokens, init_tokens.length),
++                new SuppressTokensAtBeginLogitsProcessor(generation_config.begin_suppress_tokens, decoder_input_ids.length),
+             );
+         }
+ 
+@@ -155,7 +171,7 @@ export class WhisperForConditionalGeneration extends WhisperPreTrainedModel {
+                 inputs,
+                 generation_config,
+                 logits_processor,
+-                init_tokens,
++                init_tokens: decoder_input_ids,
+                 kwargs,
+             });
+         }
+@@ -164,10 +180,15 @@ export class WhisperForConditionalGeneration extends WhisperPreTrainedModel {
+             inputs,
+             generation_config,
+             logits_processor,
+-            decoder_input_ids: init_tokens,
++            decoder_input_ids,
+             ...kwargs,
+         });
+ 
++        // Attach prompt length so callers can strip prompt tokens from output
++        if (prompt_prefix.length > 0 && outputs) {
++            outputs._prompt_length = prompt_prefix.length;
++        }
++
+         if (generation_config.return_token_timestamps) {
+             outputs['token_timestamps'] = this._extract_token_timestamps(
+                 // @ts-expect-error TS2345
+@@ -175,7 +196,7 @@ export class WhisperForConditionalGeneration extends WhisperPreTrainedModel {
+                 generation_config.alignment_heads,
+                 generation_config.num_frames,
+                 0.02,
+-                init_tokens.length,
++                decoder_input_ids.length,
+             );
+         }
+ 
