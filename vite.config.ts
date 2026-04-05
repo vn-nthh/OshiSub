@@ -5,6 +5,8 @@ import { viteStaticCopy } from 'vite-plugin-static-copy';
 import path from 'path';
 import fs from 'fs';
 
+import { cloudflare } from "@cloudflare/vite-plugin";
+
 // ─── Pre-transform plugin ────────────────────────────────────────────────────
 // Serves ORT runtime files (*.mjs, *.wasm) directly from node_modules in dev.
 // enforce: 'pre' ensures our configureServer runs BEFORE Vite's transform
@@ -55,6 +57,7 @@ export default defineConfig({
         dest: 'ort',
       })),
     }),
+    cloudflare()
   ],
   resolve: {
     alias: {
