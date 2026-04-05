@@ -379,7 +379,7 @@ export function TranscribeTab({
       start,
       end: Math.max(end, start + 0.5),
       text: '',
-      manual: true,
+      manual: prev?.manual ? false : true,
     };
     const updated = [...state.chunks];
     updated.splice(index + 1, 0, newChunk);
@@ -397,7 +397,7 @@ export function TranscribeTab({
       start,
       end: Math.max(end, start + 0.5),
       text: '',
-      manual: true,
+      manual: current?.manual ? false : true,
     };
     const updated = [...state.chunks];
     updated.splice(index, 0, newChunk);
@@ -428,7 +428,7 @@ export function TranscribeTab({
       start: splitTime,
       end: chunk.end,
       text: afterText,
-      manual: true,
+      manual: chunk.manual ? false : true,
     });
     patch({ chunks: updatedChunks });
   };
