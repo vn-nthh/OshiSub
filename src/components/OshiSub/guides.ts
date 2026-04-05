@@ -5,12 +5,14 @@
 // Items can be:
 //   - { text: "plain text" }
 //   - { key: "I", text: "Set **in point**" }
+//   - { text: "visit [link text](url) for more" }
 //
-// Use **bold** in text to highlight keywords (rendered by GuidePopover).
+// Use **bold** in text to highlight keywords.
+// Use [text](url) for clickable links.
 
 export interface GuideItem {
-  key?: string;          // keyboard shortcut (rendered as <kbd>)
-  text: string;          // supports **bold** markers
+  key?: string | string[]; // keyboard shortcut(s) (rendered as <kbd>)
+  text: string;            // supports **bold** and [text](url)
 }
 
 export interface GuideSection {
@@ -50,14 +52,21 @@ export const cutGuide: Guide = {
 
 export const transcribeGuide: Guide = {
   description:
-    'The transcribe panel generates captions from your video (or cut clips). Choose between local WebGPU inference or the Groq cloud API. Captions can be edited inline after transcription.',
+    'The transcribe panel generates captions using your chosen engine.',
   sections: [
+    {
+      title: 'Engine',
+      items: [
+        { text: '**WebGPU** — runs on your own machine' },
+        { text: '**Groq** — a free cloud service (with limits)' },
+        { text: 'To use Groq, go to [console.groq.com](https://console.groq.com), get an API key and paste it into the field — it\'s free, no credit card needed.' },
+      ],
+    },
     {
       title: 'Playback',
       items: [
         { text: '**Click a caption row** to seek to that point' },
         { text: 'The active caption is **highlighted** as the video plays' },
-        { text: 'Subtitles are **overlaid on the video** in real time' },
       ],
     },
     {
@@ -65,9 +74,7 @@ export const transcribeGuide: Guide = {
       items: [
         { text: 'Edit **text** directly in the caption row' },
         { text: 'Edit **timestamps** to adjust timing' },
-        { key: 'Shift', text: '+ **Enter** to split a caption at the cursor' },
-        { text: 'Hover between rows to **insert** a new caption' },
-        { text: 'Click **×** to delete a caption' },
+        { key: ['Shift', 'Enter'], text: 'Split a caption at the cursor' },
       ],
     },
   ],

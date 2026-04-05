@@ -246,7 +246,7 @@ export function OshiSub() {
       {/* ── Horizontal Tab Bar ───────────────────────────────────────── */}
       <nav className="tab-sidebar">
         <div style={{ display: 'flex', alignItems: 'center', paddingRight: 12, marginRight: 8, borderRight: '1px solid var(--border)', height: '100%' }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', letterSpacing: '0.12em' }}>OS</span>
+          <img src="/catt_logo_white.png" alt="" style={{ width: 22, height: 22 }} />
         </div>
         {TABS.map(({ id, label, Icon }) => (
           <button

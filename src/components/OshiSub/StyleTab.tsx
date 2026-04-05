@@ -46,6 +46,15 @@ export function StyleTab({ state, patch }: StyleTabProps) {
         {/* Left: controls */}
         <div style={{ width: leftW ?? 280, flexShrink: 0, padding: 16, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
+          <div style={{
+            fontSize: 11, lineHeight: 1.6, color: 'var(--text-muted)',
+            fontStyle: 'italic', padding: '10px 12px',
+            background: 'var(--bg-active)', borderRadius: 6,
+            border: '1px solid var(--border)',
+          }}>
+            "Under construction. Might not function properly."
+          </div>
+
           {/* Font */}
           <Section label="Font">
             <label className="form-label" style={{ display: 'block', marginBottom: 4 }}>Family</label>

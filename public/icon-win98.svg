@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Win98 logo-style icon: colored flag squares -->
-  <rect x="4" y="4" width="10" height="10" fill="#f03030"/>
-  <rect x="18" y="4" width="10" height="10" fill="#30c030"/>
-  <rect x="4" y="18" width="10" height="10" fill="#3030f0"/>
-  <rect x="18" y="18" width="10" height="10" fill="#f0c030"/>
-</svg>
