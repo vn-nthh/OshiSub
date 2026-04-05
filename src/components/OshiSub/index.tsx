@@ -18,6 +18,8 @@ import { TranscribeTab } from './TranscribeTab';
 import { TranslateTab } from './TranslateTab';
 import { StyleTab } from './StyleTab';
 import { ExportTab } from './ExportTab';
+import { LandingPage } from './LandingPage';
+import { GuidePage } from './GuidePage';
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 function IconImport(): React.JSX.Element {
@@ -241,11 +243,19 @@ export function OshiSub() {
     [state.cutSegments, state.videoDuration]
   );
 
+  const [page, setPage] = useState<'landing' | 'guide' | 'app'>('landing');
+
+  if (page === 'landing') return <LandingPage onStart={() => setPage('app')} onGuide={() => setPage('guide')} />;
+  if (page === 'guide') return <GuidePage onBack={() => setPage('landing')} onStart={() => setPage('app')} />;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100vh', overflow: 'hidden', background: 'var(--bg-base)' }}>
       {/* ── Horizontal Tab Bar ───────────────────────────────────────── */}
       <nav className="tab-sidebar">
-        <div style={{ display: 'flex', alignItems: 'center', paddingRight: 12, marginRight: 8, borderRight: '1px solid var(--border)', height: '100%' }}>
+        <div
+          style={{ display: 'flex', alignItems: 'center', paddingRight: 12, marginRight: 8, borderRight: '1px solid var(--border)', height: '100%', cursor: 'pointer' }}
+          onClick={() => setPage('landing')}
+        >
           <img src="/catt_logo_white.png" alt="" style={{ width: 22, height: 22 }} />
         </div>
         {TABS.map(({ id, label, Icon }) => (

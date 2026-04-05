@@ -2,38 +2,38 @@
 
 /* ─── Design Tokens ──────────────────────────────────────────────────────── */
 :root {
-  /* Backgrounds — pure monochrome */
-  --bg-base:     #000000;
-  --bg-surface:  #0d0d0d;
-  --bg-elevated: #161616;
-  --bg-hover:    #1e1e1e;
-  --bg-active:   #262626;
-  --bg-input:    #0a0a0a;
+  /* Backgrounds — CATT greys */
+  --bg-base:     #1e1e1e;
+  --bg-surface:  #252525;
+  --bg-elevated: #2d2d2d;
+  --bg-hover:    #363636;
+  --bg-active:   #404040;
+  --bg-input:    #191919;
 
   /* Borders */
-  --border:       #333333;
-  --border-soft:  #3a3a3a;
-  --border-focus: #999999;
+  --border:       rgba(239, 239, 239, 0.15);
+  --border-soft:  rgba(239, 239, 239, 0.1);
+  --border-focus: #707070;
 
   /* Accent — white */
-  --accent:        #ffffff;
-  --accent-dim:    #dddddd;
-  --accent-glow:   rgba(255, 255, 255, 0.15);
-  --accent-subtle: rgba(255, 255, 255, 0.08);
+  --accent:        #efefef;
+  --accent-dim:    #c0c0c0;
+  --accent-glow:   rgba(239, 239, 239, 0.15);
+  --accent-subtle: rgba(239, 239, 239, 0.08);
 
   /* Text */
-  --text:           #f0f0f0;
-  --text-muted:     #aaaaaa;
-  --text-dim:       #777777;
-  --text-on-accent: #000000;
+  --text:           #efefef;
+  --text-muted:     #909090;
+  --text-dim:       #606060;
+  --text-on-accent: #1e1e1e;
 
-  /* Semantic — all monochrome */
-  --success:      #eeeeee;
-  --success-bg:   rgba(255, 255, 255, 0.06);
-  --danger:       #bbbbbb;
-  --danger-bg:    rgba(255, 255, 255, 0.06);
-  --warning:      #999999;
-  --warning-bg:   rgba(255, 255, 255, 0.06);
+  /* Semantic */
+  --success:      #d0d0d0;
+  --success-bg:   rgba(239, 239, 239, 0.06);
+  --danger:       #a0a0a0;
+  --danger-bg:    rgba(239, 239, 239, 0.06);
+  --warning:      #808080;
+  --warning-bg:   rgba(239, 239, 239, 0.06);
 
   /* Tab bar height */
   --tabbar-h: 44px;
