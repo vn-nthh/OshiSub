@@ -3,6 +3,8 @@ import { transcribeWithGroq } from '@/lib/groq';
 import { generateId, formatTimeDisplay, virtualToSource, sourceToVirtual } from '@/lib/utils';
 import type { AppState, PatchFn, AppTab, TranscriptChunk, CutSegment } from '@/types';
 import { ResizeHandle } from './ResizeHandle';
+import { GuidePopover } from './GuidePopover';
+import { transcribeGuide } from './guides';
 
 interface TranscribeTabProps {
   state: AppState;
@@ -11,6 +13,8 @@ interface TranscribeTabProps {
   extractCutAudio: (segs: CutSegment[]) => Promise<Float32Array>;
   whisperWorkerRef: RefObject<Worker | null>;
   virtualDuration: number;
+  showHelp: boolean;
+  onToggleHelp: () => void;
 }
 
 
@@ -22,6 +26,8 @@ export function TranscribeTab({
   extractCutAudio,
   whisperWorkerRef,
   virtualDuration,
+  showHelp,
+  onToggleHelp,
 }: TranscribeTabProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
@@ -55,12 +61,28 @@ export function TranscribeTab({
 
   // ── Segment-aware seek: takes virtual time, converts to real time ──────────
   const seekVideo = useCallback((vt: number) => {
-    if (videoRef.current && sortedSegments.length > 0) {
-      const realTime = virtualToSource(vt, sortedSegments);
-      videoRef.current.currentTime = realTime;
+    if (videoRef.current) {
+      if (sortedSegments.length > 0) {
+        videoRef.current.currentTime = virtualToSource(vt, sortedSegments);
+      } else {
+        videoRef.current.currentTime = vt;
+      }
     }
     setCurrentTime(vt);
-  }, [sortedSegments]);
+
+    // Scroll timeline to keep playhead visible
+    const el = timelineScrollRef.current;
+    const track = timelineRef.current;
+    if (el && track && virtualDuration > 0) {
+      const trackW = track.clientWidth;
+      const playheadPx = (vt / virtualDuration) * trackW;
+      const viewLeft = el.scrollLeft;
+      const viewRight = viewLeft + el.clientWidth;
+      if (playheadPx < viewLeft + 20 || playheadPx > viewRight - 20) {
+        el.scrollLeft = playheadPx - el.clientWidth / 2;
+      }
+    }
+  }, [sortedSegments, virtualDuration]);
 
   // ── Segment-aware timeupdate: converts real→virtual, skips gaps ────────────
   const handleTimeUpdate = useCallback((e: React.SyntheticEvent<HTMLVideoElement>) => {
@@ -341,6 +363,7 @@ export function TranscribeTab({
       start,
       end: start + 3,
       text: '',
+      manual: true,
     };
     patch({ chunks: [...state.chunks, newChunk] });
   };
@@ -356,9 +379,28 @@ export function TranscribeTab({
       start,
       end: Math.max(end, start + 0.5),
       text: '',
+      manual: true,
     };
     const updated = [...state.chunks];
     updated.splice(index + 1, 0, newChunk);
+    patch({ chunks: updated });
+  };
+
+  // Insert a new chunk before a given index
+  const insertChunkBefore = (index: number) => {
+    const current = state.chunks[index];
+    const prev = state.chunks[index - 1];
+    const end = current ? current.start : 3;
+    const start = prev ? Math.max(prev.end, end - 3) : Math.max(0, end - 3);
+    const newChunk: TranscriptChunk = {
+      id: generateId(),
+      start,
+      end: Math.max(end, start + 0.5),
+      text: '',
+      manual: true,
+    };
+    const updated = [...state.chunks];
+    updated.splice(index, 0, newChunk);
     patch({ chunks: updated });
   };
 
@@ -386,6 +428,7 @@ export function TranscribeTab({
       start: splitTime,
       end: chunk.end,
       text: afterText,
+      manual: true,
     });
     patch({ chunks: updatedChunks });
   };
@@ -417,16 +460,21 @@ export function TranscribeTab({
       if (!dragRef.current.active || !timelineRef.current || virtualDuration === 0) return;
       const rect = timelineRef.current.getBoundingClientRect();
       const t = Math.max(0, Math.min(virtualDuration, ((ev.clientX - rect.left) / rect.width) * virtualDuration));
-      const chunk = state.chunks.find(c => c.id === dragRef.current.chunkId);
-      if (!chunk) return;
+      const chunkIdx = state.chunks.findIndex(c => c.id === dragRef.current.chunkId);
+      if (chunkIdx < 0) return;
+      const chunk = state.chunks[chunkIdx];
       dragRef.current.justDragged = true;
 
       if (dragRef.current.edge === 'start') {
-        const newStart = Math.min(t, chunk.end - 0.1);
-        updateChunk(chunk.id, { start: Math.max(0, newStart) });
+        const prevChunk = state.chunks[chunkIdx - 1];
+        const minStart = prevChunk ? prevChunk.end : 0;
+        const newStart = Math.max(minStart, Math.min(t, chunk.end - 0.1));
+        updateChunk(chunk.id, { start: newStart });
       } else {
-        const newEnd = Math.max(t, chunk.start + 0.1);
-        updateChunk(chunk.id, { end: Math.min(virtualDuration, newEnd) });
+        const nextChunk = state.chunks[chunkIdx + 1];
+        const maxEnd = nextChunk ? nextChunk.start : virtualDuration;
+        const newEnd = Math.min(maxEnd, Math.max(t, chunk.start + 0.1));
+        updateChunk(chunk.id, { end: newEnd });
       }
     };
 
@@ -480,7 +528,11 @@ export function TranscribeTab({
   }
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
+
+      {/* Guide popover */}
+      {showHelp && <GuidePopover guide={transcribeGuide} />}
+
       <div ref={transcribeSplitRef} style={{ flex: 1, display: 'flex', minHeight: 0, overflow: 'hidden' }}>
 
         {/* ── Left panel: video with subtitle overlay + controls ── */}
@@ -660,8 +712,26 @@ export function TranscribeTab({
               style={{ overflowX: 'auto', overflowY: 'hidden', padding: '0 12px', cursor: timelineZoom > 1 ? 'grab' : 'default' }}
               onWheel={(e) => {
                 e.preventDefault();
+                const el = timelineScrollRef.current;
+                if (!el || virtualDuration === 0) return;
                 const maxZoom = virtualDuration > 5 ? virtualDuration / 5 : 1;
-                setTimelineZoom(z => Math.max(1, Math.min(maxZoom, z + (e.deltaY < 0 ? 0.5 : -0.5))));
+                const oldZoom = timelineZoom;
+                const newZoom = Math.max(1, Math.min(maxZoom, oldZoom + (e.deltaY < 0 ? 0.5 : -0.5)));
+                if (newZoom === oldZoom) return;
+
+                // Anchor on playhead position
+                const containerW = el.clientWidth;
+                const playheadRatio = currentTime / virtualDuration;
+                const oldTrackW = containerW * oldZoom;
+                const newTrackW = containerW * newZoom;
+                const playheadOldPx = playheadRatio * oldTrackW;
+                const playheadNewPx = playheadRatio * newTrackW;
+                const playheadViewOffset = playheadOldPx - el.scrollLeft;
+
+                setTimelineZoom(newZoom);
+                requestAnimationFrame(() => {
+                  el.scrollLeft = playheadNewPx - playheadViewOffset;
+                });
               }}
               onMouseDown={(e) => {
                 if (e.button !== 1 || !timelineScrollRef.current) return;
@@ -685,29 +755,71 @@ export function TranscribeTab({
               <div
                 ref={timelineRef}
                 className="timeline-track"
-                style={{ height: 28, cursor: 'crosshair', width: `${timelineZoom * 100}%`, minWidth: '100%' }}
+                style={{ height: 84, cursor: 'crosshair', width: `${timelineZoom * 100}%`, minWidth: '100%' }}
                 onClick={handleTimelineClick}
               >
                 <div style={{ position: 'absolute', inset: 0, background: 'var(--bg-elevated)' }} />
-                {virtualDuration > 0 && state.chunks.map((c) => (
+                {/* Divider between nav zone and chunk zone */}
+                <div style={{ position: 'absolute', left: 0, right: 0, top: 27, height: 1, background: 'var(--border)', opacity: 0.4, zIndex: 0 }} />
+
+                {virtualDuration > 0 && (() => {
+                  // Lane assignment:
+                  // manual chunks (split/add) → top zone (y=2, height=24)
+                  // transcribed chunks → lower two lanes, alternating when adjacent
+                  const LANE_H = 26;
+                  const LANE_TOP = 30;
+                  const GAP = 0.5;
+                  const assignments: number[] = []; // -1 = top zone, 0/1 = lower lanes
+                  let prevLane = 1; // so first non-manual goes to lane 0
+                  for (let i = 0; i < state.chunks.length; i++) {
+                    const c = state.chunks[i];
+                    if (c.manual) {
+                      assignments.push(-1);
+                      // don't update prevLane — manual chunks don't affect alternation
+                    } else {
+                      const prev = state.chunks.slice(0, i).reverse().find(p => !p.manual);
+                      const isAdjacent = prev && (c.start - prev.end) < GAP;
+                      if (isAdjacent) {
+                        const lane = prevLane === 0 ? 1 : 0;
+                        assignments.push(lane);
+                        prevLane = lane;
+                      } else {
+                        assignments.push(0);
+                        prevLane = 0;
+                      }
+                    }
+                  }
+
+                  return state.chunks.map((c, ci) => (
                   <div
                     key={c.id}
                     style={{
                       position: 'absolute',
                       left: `${(c.start / virtualDuration) * 100}%`,
-                      width: `${Math.max(((c.end - c.start) / virtualDuration) * 100, 0.3)}%`,
-                      top: 3, bottom: 3,
+                      width: `${((c.end - c.start) / virtualDuration) * 100}%`,
+                      minWidth: 2,
+                      top: assignments[ci] === -1 ? 2 : LANE_TOP + assignments[ci] * (LANE_H + 2),
+                      height: assignments[ci] === -1 ? 24 : LANE_H,
                       background: c.id === activeChunk?.id ? 'var(--accent)' : 'rgba(255,255,255,0.25)',
                       borderRadius: 2,
                       cursor: 'pointer',
                       transition: 'background 0.1s',
+                      overflow: 'hidden',
+                      zIndex: ci + 1,
                     }}
-                    onClick={(e) => { e.stopPropagation(); seekVideo(c.start); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (dragRef.current.justDragged) {
+                        dragRef.current.justDragged = false;
+                        return;
+                      }
+                      seekVideo(c.start);
+                    }}
                   >
                     {/* Left drag handle (start) */}
                     <div
                       style={{
-                        position: 'absolute', left: -2, top: 0, bottom: 0, width: 6,
+                        position: 'absolute', left: 0, top: 0, bottom: 0, width: 8,
                         cursor: 'ew-resize', zIndex: 3,
                       }}
                       onMouseDown={(e) => startDrag(c.id, 'start', e)}
@@ -720,8 +832,8 @@ export function TranscribeTab({
                     {/* Right drag handle (end) */}
                     <div
                       style={{
-                        position: 'absolute', right: -2, top: 0, bottom: 0, width: 6,
-                        cursor: 'ew-resize', zIndex: 3,
+                        position: 'absolute', right: 0, top: 0, bottom: 0, width: 8,
+                        cursor: 'ew-resize', zIndex: 5,
                       }}
                       onMouseDown={(e) => startDrag(c.id, 'end', e)}
                     >
@@ -731,7 +843,8 @@ export function TranscribeTab({
                       }} />
                     </div>
                   </div>
-                ))}
+                  ));
+                })()}
                 {virtualDuration > 0 && (
                   <div
                     className="timeline-playhead"
@@ -848,11 +961,24 @@ export function TranscribeTab({
             <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               Captions {hasChunks && `(${state.chunks.length})`}
             </span>
-            {hasChunks && (
-              <button className="btn btn-ghost" style={{ fontSize: 11, padding: '3px 10px' }} onClick={addChunk}>
-                + Add
-              </button>
-            )}
+            <div style={{ display: 'flex', gap: 4 }}>
+              {activeChunk ? (<>
+                <button className="btn btn-ghost" style={{ fontSize: 11, padding: '3px 8px' }} onClick={() => {
+                  const idx = state.chunks.findIndex(c => c.id === activeChunk.id);
+                  if (idx >= 0) insertChunkBefore(idx);
+                }}>+ Before</button>
+                <button className="btn btn-ghost" style={{ fontSize: 11, padding: '3px 8px' }} onClick={() => {
+                  const idx = state.chunks.findIndex(c => c.id === activeChunk.id);
+                  if (idx >= 0) insertChunkAfter(idx);
+                }}>+ After</button>
+              </>) : (<>
+                <button className="btn btn-ghost" style={{ fontSize: 11, padding: '3px 8px' }} onClick={() => {
+                  const newChunk: TranscriptChunk = { id: generateId(), start: 0, end: Math.min(3, state.chunks[0]?.start ?? 3), text: '', manual: true };
+                  patch({ chunks: [newChunk, ...state.chunks] });
+                }}>+ First</button>
+                <button className="btn btn-ghost" style={{ fontSize: 11, padding: '3px 8px' }} onClick={addChunk}>+ Last</button>
+              </>)}
+            </div>
           </div>
 
           {/* Caption rows */}
@@ -868,11 +994,6 @@ export function TranscribeTab({
               const isActive = chunk.id === activeChunk?.id;
               return (
                 <div key={chunk.id}>
-                  {/* Small gap between captions — hover to reveal insert */}
-                  <CaptionGap onClick={() => i === 0
-                    ? patch({ chunks: [{ id: generateId(), start: 0, end: Math.min(0.5, chunk.start), text: '' }, ...state.chunks] })
-                    : insertChunkAfter(i - 1)
-                  } />
                   <div
                     ref={isActive ? activeRowRef : undefined}
                     className={`caption-row${isActive ? ' playing' : ''}`}
@@ -932,10 +1053,7 @@ export function TranscribeTab({
                 </div>
               );
             })}
-            {/* Final gap after last caption */}
-            {hasChunks && (
-              <CaptionGap onClick={() => insertChunkAfter(state.chunks.length - 1)} />
-            )}
+
           </div>
         </div>
       </div>

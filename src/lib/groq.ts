@@ -88,11 +88,14 @@ export async function translateWithGroq(
   if (texts.length === 0) return [];
 
   const numbered = texts.map((t, i) => `${i + 1}. ${t}`).join('\n');
-  const customInstructions = instructions ? `\nAdditional instructions: ${instructions}\n` : '';
-  const prompt = `Translate the following numbered subtitle lines to ${targetLanguage}. 
+  const customInstructions = instructions ? `\nAdditional instructions from the user: ${instructions}` : '';
+
+  const systemPrompt = `You are a subtitle translator. You are translating lines from a spoken conversation (e.g. a livestream, podcast, or video). Use the conversational context to understand intent, tone, and references, but do not let it compromise translation accuracy — translate what was actually said, not what you think sounds better.${customInstructions}`;
+
+  const userPrompt = `Translate the following numbered subtitle lines to ${targetLanguage}.
 Return ONLY the translated lines in the same numbered format (1. translation, 2. translation, etc.).
-Do not add explanations or change the numbering.
-${customInstructions}
+Do not add explanations, commentary, or change the numbering.
+
 ${numbered}`;
 
   const response = await fetch(GROQ_CHAT_URL, {
@@ -103,7 +106,10 @@ ${numbered}`;
     },
     body: JSON.stringify({
       model: GROQ_TRANSLATE_MODEL,
-      messages: [{ role: 'user', content: prompt }],
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
       temperature: 0.1,
     }),
   });

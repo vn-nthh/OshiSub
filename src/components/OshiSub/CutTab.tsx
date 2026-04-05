@@ -4,6 +4,8 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import type { CutSegment } from '@/types';
 import { generateId, formatTimeDisplay, parseTimeInput, clamp } from '@/lib/utils';
 import { ResizeHandle } from './ResizeHandle';
+import { GuidePopover } from './GuidePopover';
+import { cutGuide } from './guides';
 
 interface CutTabProps {
   videoFile: File | null;
@@ -410,52 +412,8 @@ export function CutTab({ videoFile, videoObjectUrl, videoDuration, cutSegments, 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
 
-      {/* Help popover (anchored to top-left of body) */}
-      {showHelp && (
-        <div style={{
-          position: 'absolute', top: 4, right: 12, zIndex: 50,
-          background: 'var(--bg-elevated)', border: '1px solid var(--border)',
-          borderRadius: 6, padding: '14px 16px', width: 260,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-          display: 'flex', flexDirection: 'column', gap: 10,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <kbd style={{ padding: '1px 6px', borderRadius: 3, border: '1px solid var(--border-soft)', background: 'var(--bg-base)', fontFamily: 'monospace', fontWeight: 700, fontSize: 10 }}>I</kbd>
-            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Mark <strong style={{ color: 'var(--text)' }}>in point</strong></span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <kbd style={{ padding: '1px 6px', borderRadius: 3, border: '1px solid var(--border-soft)', background: 'var(--bg-base)', fontFamily: 'monospace', fontWeight: 700, fontSize: 10 }}>O</kbd>
-            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Mark <strong style={{ color: 'var(--text)' }}>out point</strong> — creates clip</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <kbd style={{ padding: '1px 6px', borderRadius: 3, border: '1px solid var(--border-soft)', background: 'var(--bg-base)', fontFamily: 'monospace', fontWeight: 700, fontSize: 10 }}>N</kbd>
-            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Quick <strong style={{ color: 'var(--text)' }}>30s clip</strong></span>
-          </div>
-          <div style={{ height: 1, background: 'var(--border)' }} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-              <path d="M9 9V4.5A1.5 1.5 0 0 1 10.5 3 1.5 1.5 0 0 1 12 4.5V12"/>
-              <path d="M6 15a6 6 0 0 0 12 0V8.5"/>
-              <path d="M6 11V8.5A1.5 1.5 0 0 1 7.5 7 1.5 1.5 0 0 1 9 8.5"/>
-            </svg>
-            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}><strong style={{ color: 'var(--text)' }}>Double-click</strong> to seek</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-              <polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/>
-              <polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/>
-              <line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/>
-            </svg>
-            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}><strong style={{ color: 'var(--text)' }}>Drag</strong> clips · handles to resize</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-              <rect x="6" y="2" width="12" height="20" rx="6"/><line x1="12" y1="6" x2="12" y2="10"/>
-            </svg>
-            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}><strong style={{ color: 'var(--text)' }}>Scroll</strong> to zoom timeline</span>
-          </div>
-        </div>
-      )}
+      {/* Guide popover */}
+      {showHelp && <GuidePopover guide={cutGuide} />}
 
       {/* ── Body: video (left) + clip list (right) ──────────────────────── */}
       <div ref={containerRef} style={{ flex: 1, display: 'flex', minHeight: 0, overflow: 'hidden' }}>

@@ -26,6 +26,7 @@ export interface TranscriptChunk {
   start: number; // seconds in the virtual (cut) timeline
   end: number;
   text: string;
+  manual?: boolean; // true for chunks created by split/add (renders in top lane)
 }
 
 export interface TranscriptResult {

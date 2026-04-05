@@ -97,6 +97,7 @@ const TABS: { id: AppTab; label: string; Icon: () => React.JSX.Element }[] = [
 export function OshiSub() {
   const [activeTab, setActiveTab] = useState<AppTab>('import');
   const [showCutHelp, setShowCutHelp] = useState(false);
+  const [showTranscribeHelp, setShowTranscribeHelp] = useState(false);
 
   const [state, setState] = useState<AppState>({
     videoFile: null,
@@ -268,7 +269,7 @@ export function OshiSub() {
               className="btn btn-ghost"
               style={{ fontSize: 11, padding: '4px 10px', alignSelf: 'center' }}
               onClick={() => setShowCutHelp(h => !h)}
-            >Instructions
+            >Guide
             </button>
             <button
               className="btn btn-primary"
@@ -276,6 +277,21 @@ export function OshiSub() {
               onClick={() => setActiveTab('transcribe')}
             >
               Transcribe
+            </button>
+            </div>
+          </>
+        )}
+
+        {/* Right-aligned actions for Transcribe tab */}
+        {activeTab === 'transcribe' && state.videoFile && (
+          <>
+            <div style={{ flex: 1 }} />
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button
+              className="btn btn-ghost"
+              style={{ fontSize: 11, padding: '4px 10px', alignSelf: 'center' }}
+              onClick={() => setShowTranscribeHelp(h => !h)}
+            >Guide
             </button>
             </div>
           </>
@@ -308,6 +324,8 @@ export function OshiSub() {
               extractCutAudio={extractCutAudio}
               whisperWorkerRef={whisperWorkerRef}
               virtualDuration={virtualDuration}
+              showHelp={showTranscribeHelp}
+              onToggleHelp={() => setShowTranscribeHelp(h => !h)}
             />
           )}
           {activeTab === 'translate' && (

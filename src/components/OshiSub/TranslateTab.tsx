@@ -274,12 +274,15 @@ export function TranslateTab({ state, patch, translateWorkerRef }: TranslateTabP
             {langConfigs.map((cfg) => (
               <div
                 key={cfg.lang}
+                onClick={() => patch({ targetLanguage: cfg.lang })}
                 style={{
                   flex: 1, minWidth: 120, padding: '8px 12px',
                   fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em',
-                  color: 'var(--text-muted)',
+                  color: cfg.lang === state.targetLanguage ? 'var(--text)' : 'var(--text-muted)',
+                  background: cfg.lang === state.targetLanguage ? 'var(--bg-active)' : 'transparent',
                   borderRight: '1px solid var(--border)',
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  cursor: 'pointer', transition: 'all 0.1s',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -289,7 +292,7 @@ export function TranslateTab({ state, patch, translateWorkerRef }: TranslateTabP
                   )}
                 </div>
                 <button
-                  onClick={() => removeLanguage(cfg.lang)}
+                  onClick={(e) => { e.stopPropagation(); removeLanguage(cfg.lang); }}
                   style={{
                     background: 'none', border: 'none', color: 'var(--text-dim)',
                     cursor: 'pointer', fontSize: 12, padding: '0 2px', lineHeight: 1,
@@ -340,6 +343,7 @@ export function TranslateTab({ state, patch, translateWorkerRef }: TranslateTabP
                       style={{
                         flex: 1, minWidth: 120, padding: '8px 12px',
                         borderRight: '1px solid var(--border)',
+                        background: cfg.lang === state.targetLanguage ? 'rgba(255,255,255,0.02)' : 'transparent',
                       }}
                     >
                       {translated ? (
