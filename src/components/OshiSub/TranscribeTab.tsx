@@ -341,10 +341,38 @@ export function TranscribeTab({
   };
 
   const transcribeGroq = async (samples: Float32Array) => {
-    patch({ statusMsg: 'Sending to Groq Whisper…' });
+    const SAMPLE_RATE = 16000;
+    // Groq Whisper rejects files >25 MB.
+    // At 16 kHz mono PCM16: 1 s = 32 000 bytes → 500 s ≈ 16 MB (safe margin).
+    const CHUNK_SECS = 500;
+    const chunkSamples = CHUNK_SECS * SAMPLE_RATE;
+    const totalChunks = Math.ceil(samples.length / chunkSamples);
+
     const lang = state.transcribeLanguage.trim() || undefined;
-    const result = await transcribeWithGroq(samples, 16000, 0, state.groqApiKey.trim(), lang, state.keyterms.trim() || undefined);
-    patch({ chunks: result });
+    const key  = state.groqApiKey.trim();
+    const prompt = state.keyterms.trim() || undefined;
+    const allChunks: TranscriptChunk[] = [];
+
+    for (let i = 0; i < totalChunks; i++) {
+      const startSample = i * chunkSamples;
+      const endSample   = Math.min(startSample + chunkSamples, samples.length);
+      const chunk       = samples.slice(startSample, endSample);
+      const startSec    = startSample / SAMPLE_RATE;
+      const endSec      = endSample   / SAMPLE_RATE;
+
+      patch({ statusMsg: `Groq: sending chunk ${i + 1}/${totalChunks} (${startSec.toFixed(0)}s–${endSec.toFixed(0)}s)…` });
+
+      try {
+        const result = await transcribeWithGroq(chunk, SAMPLE_RATE, startSec, key, lang, prompt);
+        allChunks.push(...result);
+        patch({ chunks: [...allChunks] }); // stream results progressively
+      } catch (err) {
+        console.warn(`[Groq] Chunk ${i + 1}/${totalChunks} failed:`, err);
+        patch({ statusMsg: `Chunk ${i + 1} failed, continuing…` });
+      }
+    }
+
+    patch({ chunks: allChunks });
   };
 
   // ── Caption editing ───────────────────────────────────────────────────────
