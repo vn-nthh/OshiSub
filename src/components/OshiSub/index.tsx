@@ -110,6 +110,7 @@ export function OshiSub() {
     audioDuration: 0,
     whisperModelId: 'onnx-community/whisper-large-v3-turbo',
     transcribeMode: 'webgpu',
+    transcribeLanguage: '',
     groqApiKey: '',
     keyterms: '',
     chunks: [],

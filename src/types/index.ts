@@ -118,6 +118,7 @@ export interface AppState {
   audioDuration: number;
   whisperModelId: string;
   transcribeMode: TranscriptionMode;
+  transcribeLanguage: string; // ISO-639-1 code, e.g. 'ja', 'en', '' = auto-detect
   groqApiKey: string;
   keyterms: string;
   chunks: TranscriptChunk[];

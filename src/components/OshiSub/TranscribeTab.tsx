@@ -325,7 +325,7 @@ export function TranscribeTab({
           worker.addEventListener('message', handler);
           const samplesCopy = seg.audio.slice(0);
           worker.postMessage(
-            { type: 'run', payload: { audio: samplesCopy, sampleRate: SAMPLE_RATE, segmentStartSec: seg.startSec, audioDurationSec: seg.audio.length / SAMPLE_RATE, prompt: state.keyterms.trim() || undefined } },
+            { type: 'run', payload: { audio: samplesCopy, sampleRate: SAMPLE_RATE, segmentStartSec: seg.startSec, audioDurationSec: seg.audio.length / SAMPLE_RATE, language: state.transcribeLanguage.trim() || undefined, prompt: state.keyterms.trim() || undefined } },
             [samplesCopy.buffer]
           );
         });
@@ -342,7 +342,8 @@ export function TranscribeTab({
 
   const transcribeGroq = async (samples: Float32Array) => {
     patch({ statusMsg: 'Sending to Groq Whisper…' });
-    const result = await transcribeWithGroq(samples, 16000, 0, state.groqApiKey.trim(), undefined, state.keyterms.trim() || undefined);
+    const lang = state.transcribeLanguage.trim() || undefined;
+    const result = await transcribeWithGroq(samples, 16000, 0, state.groqApiKey.trim(), lang, state.keyterms.trim() || undefined);
     patch({ chunks: result });
   };
 
@@ -886,6 +887,73 @@ export function TranscribeTab({
                       {activeDevice === 'webgpu' ? 'GPU' : 'CPU'}
                     </span>
                   )}
+                </div>
+
+                {/* Source Language */}
+                <div className="form-row">
+                  <label className="form-label">Language</label>
+                  <select
+                    value={state.transcribeLanguage}
+                    onChange={e => patch({ transcribeLanguage: e.target.value })}
+                  >
+                    <option value="">Auto-detect</option>
+                    <option value="af">Afrikaans</option>
+                    <option value="ar">Arabic</option>
+                    <option value="hy">Armenian</option>
+                    <option value="az">Azerbaijani</option>
+                    <option value="be">Belarusian</option>
+                    <option value="bs">Bosnian</option>
+                    <option value="bg">Bulgarian</option>
+                    <option value="ca">Catalan</option>
+                    <option value="zh">Chinese</option>
+                    <option value="hr">Croatian</option>
+                    <option value="cs">Czech</option>
+                    <option value="da">Danish</option>
+                    <option value="nl">Dutch</option>
+                    <option value="en">English</option>
+                    <option value="et">Estonian</option>
+                    <option value="fi">Finnish</option>
+                    <option value="fr">French</option>
+                    <option value="gl">Galician</option>
+                    <option value="de">German</option>
+                    <option value="el">Greek</option>
+                    <option value="he">Hebrew</option>
+                    <option value="hi">Hindi</option>
+                    <option value="hu">Hungarian</option>
+                    <option value="id">Indonesian</option>
+                    <option value="it">Italian</option>
+                    <option value="ja">Japanese</option>
+                    <option value="kn">Kannada</option>
+                    <option value="kk">Kazakh</option>
+                    <option value="ko">Korean</option>
+                    <option value="lv">Latvian</option>
+                    <option value="lt">Lithuanian</option>
+                    <option value="mk">Macedonian</option>
+                    <option value="ms">Malay</option>
+                    <option value="mr">Marathi</option>
+                    <option value="mi">Maori</option>
+                    <option value="ne">Nepali</option>
+                    <option value="no">Norwegian</option>
+                    <option value="fa">Persian</option>
+                    <option value="pl">Polish</option>
+                    <option value="pt">Portuguese</option>
+                    <option value="ro">Romanian</option>
+                    <option value="ru">Russian</option>
+                    <option value="sr">Serbian</option>
+                    <option value="sk">Slovak</option>
+                    <option value="sl">Slovenian</option>
+                    <option value="es">Spanish</option>
+                    <option value="sw">Swahili</option>
+                    <option value="sv">Swedish</option>
+                    <option value="tl">Tagalog</option>
+                    <option value="ta">Tamil</option>
+                    <option value="th">Thai</option>
+                    <option value="tr">Turkish</option>
+                    <option value="uk">Ukrainian</option>
+                    <option value="ur">Urdu</option>
+                    <option value="vi">Vietnamese</option>
+                    <option value="cy">Welsh</option>
+                  </select>
                 </div>
 
                 {/* Groq key */}
